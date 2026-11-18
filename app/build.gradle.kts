@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.sabac.hy.cleaner"
-    // libxposed service/interface 与 coui 都要求 compileSdk >= 37
+    namespace = "com.halo.mirror"
+    // libxposed service/interface 要求 compileSdk >= 37
     compileSdk = 37
     buildToolsVersion = "37.0.0"
 
     defaultConfig {
-        applicationId = "com.sabac.hy.cleaner"
+        applicationId = "com.halo.mirror"
         minSdk = 26          // libxposed api/service 的下限
         targetSdk = 37
         versionCode = 1
@@ -20,15 +20,23 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 排错用：保留类名，日志正常输出
+            isMinifyEnabled = false
+        }
         release {
+            // 混淆是防检测的一部分：类名/字符串/诊断代码都在这一步消失
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles("proguard-rules.pro")
-            signingConfig = signingConfigs["debug"] // 自用模块直接复用 debug 签名，保持升级可覆盖
+            signingConfig = signingConfigs["debug"] // 自用模块复用 debug 签名，保持升级可覆盖
         }
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

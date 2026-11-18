@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- android:label / android:description 引用的就是这两个 -->
-    <string name="app_name">欢游净化</string>
-    <string name="module_description">去掉欢游顶部娱乐 tab、首页入口九宫格与横幅广告、底栏广场与开房图标，以及消息页和我的页的推广入口</string>
+    <!-- android:label / android:description 引用的就是这两个。
+         名字刻意中性，避免在包列表/应用列表里直接暴露用途。 -->
+    <string name="app_name">Mirror</string>
+    <string name="module_description">界面布局调整工具</string>
 </resources>

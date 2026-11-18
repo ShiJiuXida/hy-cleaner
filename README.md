@@ -1,8 +1,10 @@
-# 欢游净化
+# Mirror
 
 欢游（`com.sabac.hy`）的 LSPosed 界面精简模块，基于 libxposed **API 102**。
 
 把不想看到的入口、广告位、推广横幅收掉，不改动任何数据。
+
+包名 `com.halo.mirror`、应用名 `Mirror` 刻意中性，不在包列表/应用列表里直接暴露用途。
 
 ## 设计取舍
 
@@ -50,6 +52,33 @@
 
 > 名单（`Feature.blockIds`）只放「一个 id 只服务一种用途」的控件。
 > `item_layout_root`、`tab_filter_item_root` 这类被大量复用的 id 放进去会把正常内容一起收掉。
+
+## 减少被检测的痕迹
+
+模块本身是被注入进程里的一段外来代码，目标应用若主动排查是能看到痕迹的。
+**LSPosed 负责隐藏注入与栈帧，但不负责隐藏「方法被改过」**，所以下面这些是模块侧能做的：
+
+| 措施 | 做法 | 效果 |
+|---|---|---|
+| 关日志 | `HyLog.ENABLED = BuildConfig.DEBUG`，release 里 R8 折算掉全部分支，并用 `-assumenosideeffects` 兜底 | logcat 里不存在任何日志字面量。目标应用持有 `READ_LOGS`，日志就是自曝 |
+| 类名混淆 | release 开 R8 | 入口 `HyModule` 混淆成两个字母，`feature.*` / `hook.*` 全部消失 |
+| 诊断代码不进包 | `Probe` 加 `-assumenosideeffects` | 排错用的树导出逻辑不会残留 |
+| 不调 `deoptimize` | `Installer` 默认跳过，只在 `DEOPT_TARGETS` 里的方法才调 | 方法不脱离 AOT 优化、entrypoint 不改，抹掉最直接的「方法被动过」证据 |
+| 中性命名 | 包名 / 应用名 / prefs 分组名都不带 cleaner、hook 字样 | 关键词扫描失效 |
+
+构建产物验证（`dexdump -s` 搜索关键字全为 0）：
+
+```
+HYClean: 0    已挂载: 0    收起: 0    cleaner: 0    hy_cleaner: 0
+```
+
+> 剩下的痕迹只有目标包名 `com.sabac.hy`（必须留着才能匹配），以及框架自身暴露的东西。
+
+### 做不到的
+
+- 无法让 `ArtMethod` 完全看不出被 hook：只要 hook 了框架方法就一定留下 entrypoint 改动。
+- 无法对抗主动式反调试/反注入（易盾那类 SO 层检测）：模块跑在 Java 层，够不到那边。
+- 无法隐藏模块 APK 在 `/proc/self/maps` 里的映射：那是框架的行为。
 
 ## 代码结构
 
@@ -101,16 +130,17 @@ ui/                   设置界面（Compose）
 需要 JDK 21、Android SDK（compileSdk 37、build-tools 37.0.0）。
 
 ```bash
-gradle :app:assembleDebug
+gradle :app:assembleRelease   # 日常用这个：混淆 + 无日志
+gradle :app:assembleDebug     # 排错用：不混淆、有日志
 ```
 
-产物在 `app/build/outputs/apk/debug/`。
+产物在 `app/build/outputs/apk/{release,debug}/`。release 体积约 960 KB。
 
 > arm64 设备本地构建时 `aapt2` 只有 x86_64 版本，需要 `qemu-user-static` + binfmt。
 
 ## 安装
 
-1. 装 APK，在 LSPosed 里启用模块
+1. 装 APK（包名 `com.halo.mirror`），在 LSPosed 里启用模块
 2. 作用域勾选 **欢游**（`com.sabac.hy`）
 3. 强制停止欢游再打开
 
@@ -118,7 +148,13 @@ gradle :app:assembleDebug
 
 ## 日志
 
-LSPosed 管理器 → 日志，标记 `HYClean`。模块 App 自身看不到这些日志。
+**release 包没有日志**（见上一节）。排错请用 debug 包：
+
+```bash
+gradle :app:assembleDebug
+```
+
+LSPosed 管理器 → 日志，标记 `Mirror`。模块 App 自身看不到这些日志。
 
 ## 版本
 

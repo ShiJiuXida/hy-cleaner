@@ -22,3 +22,7 @@ captures/
 # 系统
 .DS_Store
 Thumbs.db
+
+# 诊断样本/临时产物
+*.dex
+*.log
