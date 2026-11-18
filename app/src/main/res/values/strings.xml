@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- android:label / android:description 引用的就是这两个 -->
+    <string name="app_name">欢游净化</string>
+    <string name="module_description">去掉欢游顶部娱乐 tab、首页入口九宫格与横幅广告、底栏广场与开房图标，以及消息页和我的页的推广入口</string>
+</resources>
