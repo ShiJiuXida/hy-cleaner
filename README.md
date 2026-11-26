@@ -165,13 +165,9 @@ ui/                   设置界面（Compose）
 
 ## 日志
 
-**release 包没有日志**（见上面「减少被检测的痕迹」）。排错请用 debug 包：
+**release 包没有日志**（见上面「减少被检测的痕迹」）。要排错只能自己编一个不混淆的 debug 变体。
 
-```bash
-gradle :app:assembleDebug
-```
-
-LSPosed 管理器 → 日志，标记 `Mirror`。模块 App 自身看不到这些日志。
+拿到之后看 LSPosed 管理器 → 日志，标记 `Mirror`。模块 App 自身看不到这些日志。
 
 ## 版本
 
