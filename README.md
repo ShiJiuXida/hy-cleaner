@@ -155,7 +155,7 @@ gradle :app:assembleRelease   # 日常用这个：混淆 + 无日志
 gradle :app:assembleDebug     # 排错用：不混淆、有日志
 ```
 
-产物在 `app/build/outputs/apk/{release,debug}/`。release 体积约 960 KB。
+产物在 `app/build/outputs/apk/{release,debug}/`。release 体积约 1.3 MB（其中两张赞赏码图片约 370 KB）。
 
 > arm64 设备本地构建时 `aapt2` 只有 x86_64 版本，需要 `qemu-user-static` + binfmt。
 
@@ -190,6 +190,16 @@ LSPosed 管理器 → 日志，标记 `Mirror`。模块 App 自身看不到这�
 
 规则基于欢游 **2.88.5 (19623)**。版本变化后某个开关失效时，
 看日志里的 `规则异常` / `id 找不到` 能定位到是哪一项。
+
+## 赞赏支持
+
+如果这个模块对你有帮助，欢迎请作者喝杯奶茶 ₍ᐢ..ᐢ₎♡
+
+<p align="center">
+  <img src="donate/donate_pair.png" width="400" alt="赞赏码" />
+</p>
+
+设置页底部也有同样的两张码，随手就能扫。
 
 ## 许可
 

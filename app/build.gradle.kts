@@ -15,8 +15,8 @@ android {
         applicationId = "com.halo.mirror"
         minSdk = 26          // libxposed api/service 的下限
         targetSdk = 37
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.1.2"
     }
 
     buildTypes {
