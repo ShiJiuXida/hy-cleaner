@@ -15,8 +15,10 @@ android {
         applicationId = "com.halo.mirror"
         minSdk = 26          // libxposed api/service 的下限
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.1.2"
+        // versionName 是用户看到的版本号；versionCode 必须单调递增才能覆盖安装，
+        // 所以对外首发叫 1.0，内部仍然接着之前的序号往上走。
+        versionCode = 5
+        versionName = "1.0"
     }
 
     buildTypes {

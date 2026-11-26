@@ -1,5 +1,7 @@
 package com.halo.mirror.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +53,8 @@ import com.halo.mirror.core.Target
 
 /** 设置页的一行：总开关和功能开关共用 */
 private class Row(val key: String, val title: String, val desc: String)
+
+private const val REPO_URL = "https://github.com/ShiJiuXida/hy-cleaner"
 
 private val MASTER = listOf(
     Row(Keys.ENABLED, "启用模块", "关掉后完全不介入欢游"),
@@ -107,6 +112,7 @@ fun SettingsScreen() {
                     )
                 }
             }
+            item { About() }
             item { Donate() }
             item { Footer() }
         }
@@ -196,6 +202,55 @@ private fun SwitchRow(row: Row, checked: Boolean, onToggle: (String, Boolean) ->
         }
         Spacer(Modifier.size(10.dp))
         Switch(checked = checked, onCheckedChange = { onToggle(row.key, it) })
+    }
+}
+
+/** 项目地址与免费声明：防的是「被人打包卖钱」那种二次分发 */
+@Composable
+private fun About() {
+    val context = LocalContext.current
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("关于", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                "项目地址",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(3.dp))
+            Text(
+                REPO_URL,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        runCatching {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPO_URL)))
+                        }
+                    }
+                    .padding(vertical = 5.dp),
+            )
+
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "本模块完全免费，不收取任何费用，也没有任何付费解锁的内容。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "如果你是花钱买来的，说明被人拿去倒卖了，那份包还可能被改过。请到上面的地址免费获取原版。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
