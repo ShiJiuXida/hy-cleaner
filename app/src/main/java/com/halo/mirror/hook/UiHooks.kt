@@ -96,16 +96,24 @@ class UiHooks(private val installer: Installer) {
         val m = runCatching { Dialog::class.java.getDeclaredMethod("show") }.getOrNull()
             ?: return false
         return installer.on(m, "hy-dialog") { chain ->
-            val result = chain.proceed()
-            runCatching {
-                val decor = (chain.thisObject as? Dialog)?.window?.decorView
-                if (decor != null) {
-                    Sweep.run(decor)
-                    Probe.panel(Dom(decor))
-                    watch(decor)
+            val dialog = chain.thisObject as? Dialog
+            // 命中弹窗规则就不 show：连一帧都不出现，也不用事后再关
+            if (dialog != null && PopupGuard.blocked(dialog)) {
+                null
+            } else {
+                val result = chain.proceed()
+                runCatching { if (dialog != null) PopupGuard.handleShown(dialog) }
+                runCatching {
+                    val decor = dialog?.window?.decorView
+                    if (decor != null) {
+                        Sweep.run(decor)
+                        Probe.panel(Dom(decor))
+                        Probe.snapshot(decor, "dialog")
+                        watch(decor)
+                    }
                 }
+                result
             }
-            result
         }
     }
 

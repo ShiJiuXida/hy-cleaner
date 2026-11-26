@@ -8,6 +8,7 @@ enum class FeatureGroup(val label: String) {
     MESSAGE("消息"),
     MINE("我的"),
     ROOM("房间"),
+    POPUP("弹窗"),
 }
 
 /**

@@ -98,6 +98,7 @@ view/
 hook/
   Hooks.kt            编排：常驻循环 + 装配
   UiHooks.kt          页面 / 弹层 / 列表 / 可见性 / 手势
+  PopupGuard.kt       弹窗拦截（Dialog.show 设卡 + 已显示窗口清扫）
   Installer.kt        hook 安装工具
   Windows.kt          窗口根视图枚举
 feature/
@@ -105,6 +106,7 @@ feature/
   MessageFeatures.kt  消息 2 项
   MineFeatures.kt     我的 2 项
   RoomFeatures.kt     房间 4 项
+  PopupFeatures.kt    弹窗 2 项（更新提示 / 登录抽奖广告）
 diag/
   Probe.kt            诊断输出（面板项 / 窗口概况 / 整树导出）
 Sweep.kt              一次清扫，按配置逐条执行
@@ -124,6 +126,25 @@ ui/                   设置界面（Compose）
 | 消息 | 「我的房间」右侧频道卡、好友印记 / 活动中心 |
 | 我的 | 贵族特权、开通超级玩家 |
 | 房间 | 全服公告条、输入栏右侧广告、三条杠底部付费入口、麦位名称上方广告 |
+| 弹窗 | 版本更新提示、登录抽奖广告 |
+
+### 弹窗和别的功能不是一回事
+
+其余功能都是「找到控件收起来」，弹窗是独立窗口 —— 只把控件 `GONE` 会留下一层
+挡住点击的透明窗口，所以弹窗走 `hook/PopupGuard.kt`：
+
+| 时机 | 动作 |
+|---|---|
+| `Dialog.show()` 之前 | 命中规则就**不调用原方法**，弹窗连一帧都不出现 |
+| 常驻 500ms 循环 | 扫所有窗口根，对「已经显示出来的」实例点它自己的关闭按钮 |
+
+第二条是为了覆盖「模块装上之前就弹出来」的情况（热重载后立刻生效）。
+不用 `dismiss()` 也不用从 `WindowManagerGlobal` 删窗口：前者拿不到 Dialog 实例，
+后者会让应用之后的 `dismiss()` 抛 `View not attached`。点关闭按钮走的是应用自己的路径。
+
+识别方式：更新提示按文案（`版本更新` + `立刻更新` 一类按钮）认，抽奖广告按 id
+（`loginLotteryLayout` + `loginLotteryClose`）认 —— 主页顶栏那个抽奖入口是另一个 id
+（`loginLotteryEntranceLayout`），不会误伤。
 
 ## 构建
 
@@ -145,6 +166,15 @@ gradle :app:assembleDebug     # 排错用：不混淆、有日志
 3. 强制停止欢游再打开
 
 改完开关后在欢游里切一次页面就会重读配置，不用重启。
+
+### 模块本身更新也不用重启欢游
+
+`module.prop` 里开着 `autoHotReload=true`，LSPosed 在模块 APK 更新后会带着新代码
+重新进 `onHotReloaded`。这里不能只摘旧 hook —— 摘完要用新 classLoader 重装一遍
+（见 `HyModule.onHotReloaded`），否则热重载等于把模块卸掉。
+
+热重载之后 `Hooks.install` 会立刻扫一遍窗口，所以「更新前就已经弹在屏幕上」的
+目标弹窗也会被直接关掉，不用等下次启动。
 
 ## 日志
 

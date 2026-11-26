@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import com.halo.mirror.Sweep
 import com.halo.mirror.core.HyLog
+import com.halo.mirror.diag.Probe
 import com.halo.mirror.view.Block
 import com.halo.mirror.view.Dom
 import io.github.libxposed.api.XposedModule
@@ -33,6 +34,9 @@ class Hooks(private val xposed: XposedModule) {
         val count = uiHooks.install()
         HyLog.i("挂载完成 $count/4")
 
+        // 装完先扫一遍：模块装上之前就弹出来的窗口（热重载时最常见）也一并收掉
+        ui.post { PopupGuard.sweep() }
+
         if (!started) {
             started = true
             ui.postDelayed(tick, TICK_MS)
@@ -40,9 +44,12 @@ class Hooks(private val xposed: XposedModule) {
     }
 
     private fun sweepAll() {
+        runCatching { PopupGuard.sweep() }
         val roots = Windows.roots()
         roots.forEach { root ->
             runCatching { Sweep.run(root) }
+            // debug 包：界面出现新东西时把树打进日志，用来定位弹窗/新广告位
+            runCatching { Probe.snapshot(root, "loop") }
             uiHooks.watch(root)
         }
         roots.firstOrNull()?.let { Block.ensure(it) }

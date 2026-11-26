@@ -45,8 +45,24 @@ class HyModule : XposedModule() {
 
     override fun onHotReloading(param: XposedModuleInterface.HotReloadingParam): Boolean = true
 
+    /**
+     * 模块 APK 更新后框架会带着新代码重进这个方法，不用重启欢游。
+     *
+     * 旧 hook 必须自己摘（[onHotReloading] 返回 true 就是「我自己处理」），
+     * 摘完立刻用新代码重装 —— 否则热重载之后等于模块被卸掉了。
+     */
     override fun onHotReloaded(param: XposedModuleInterface.HotReloadedParam) {
+        HyLog.bind(this)
         param.oldHookHandles.forEach { runCatching { it.unhook() } }
-        HyLog.i("热重载完成，需重启欢游生效")
+        HyLog.i("热重载：旧 hook 已摘，重装新代码")
+
+        runCatching {
+            if (!Process.name().startsWith(Target.PACKAGE)) return@runCatching
+            if (!Process.isMain()) return@runCatching
+            if (!Live.attach(this)) return@runCatching
+            val settings = Live.settings
+            if (!settings.enabled || settings.panic) return@runCatching
+            Hooks(this).install(HyModule::class.java.classLoader)
+        }.onFailure { HyLog.w("热重载重装失败 ${it.message}") }
     }
 }

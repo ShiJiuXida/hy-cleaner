@@ -5,6 +5,7 @@ import com.halo.mirror.feature.EntertainmentTab
 import com.halo.mirror.feature.EntryRow
 import com.halo.mirror.feature.FilterRecommend
 import com.halo.mirror.feature.InputGiftAd
+import com.halo.mirror.feature.LoginLotteryAd
 import com.halo.mirror.feature.MicFloatAd
 import com.halo.mirror.feature.Nobility
 import com.halo.mirror.feature.PanelShortcuts
@@ -14,6 +15,7 @@ import com.halo.mirror.feature.RoomChannelCard
 import com.halo.mirror.feature.SuperPlayer
 import com.halo.mirror.feature.ToastBanner
 import com.halo.mirror.feature.TopRightAd
+import com.halo.mirror.feature.UpdatePrompt
 
 /**
  * 所有功能的唯一清单。
@@ -42,6 +44,9 @@ object FeatureRegistry {
         InputGiftAd,
         PanelShortcuts,
         MicFloatAd,
+        // 弹窗
+        UpdatePrompt,
+        LoginLotteryAd,
     )
 
     /** 按分组归类，给设置界面用（组内顺序沿用上面的顺序） */
