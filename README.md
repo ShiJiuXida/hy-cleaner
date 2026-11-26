@@ -146,19 +146,6 @@ ui/                   设置界面（Compose）
 （`loginLotteryLayout` + `loginLotteryClose`）认 —— 主页顶栏那个抽奖入口是另一个 id
 （`loginLotteryEntranceLayout`），不会误伤。
 
-## 构建
-
-需要 JDK 21、Android SDK（compileSdk 37、build-tools 37.0.0）。
-
-```bash
-gradle :app:assembleRelease   # 日常用这个：混淆 + 无日志
-gradle :app:assembleDebug     # 排错用：不混淆、有日志
-```
-
-产物在 `app/build/outputs/apk/{release,debug}/`。release 体积约 1.3 MB（其中两张赞赏码图片约 370 KB）。
-
-> arm64 设备本地构建时 `aapt2` 只有 x86_64 版本，需要 `qemu-user-static` + binfmt。
-
 ## 安装
 
 1. 装 APK（包名 `com.halo.mirror`），在 LSPosed 里启用模块
@@ -178,7 +165,7 @@ gradle :app:assembleDebug     # 排错用：不混淆、有日志
 
 ## 日志
 
-**release 包没有日志**（见上一节）。排错请用 debug 包：
+**release 包没有日志**（见上面「减少被检测的痕迹」）。排错请用 debug 包：
 
 ```bash
 gradle :app:assembleDebug
