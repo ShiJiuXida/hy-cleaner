@@ -66,6 +66,12 @@
 | 不调 `deoptimize` | `Installer` 默认跳过，只在 `DEOPT_TARGETS` 里的方法才调 | 方法不脱离 AOT 优化、entrypoint 不改，抹掉最直接的「方法被动过」证据 |
 | 中性命名 | 包名 / 应用名 / prefs 分组名都不带 cleaner、hook 字样 | 关键词扫描失效 |
 
+**不要加 `-adaptclassstrings`。** 它会把「看起来像类名」的字符串一起改写，而 AIDL
+的接口描述符就是这样一个字符串：`io.github.libxposed.service.IXposedService` 被改成
+混淆名之后，模块 App 调框架的 `getRemotePreferences` 时 binder 里 `enforceInterface`
+对不上（logcat 会报 `expected '...IXposedService' but read 'du'`），异常被吞掉，
+界面就误报成「写入失败」。服务库的类名必须原样保留，见 `proguard-rules.pro`。
+
 构建产物验证（`dexdump -s` 搜索关键字全为 0）：
 
 ```

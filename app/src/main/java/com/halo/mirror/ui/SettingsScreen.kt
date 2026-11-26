@@ -71,7 +71,7 @@ private fun defaults(): Map<String, Boolean> = buildMap {
 fun SettingsScreen() {
     val service by AppBridge.service.collectAsState()
     var state by remember { mutableStateOf(defaults()) }
-    var failed by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(service) {
         val prefs = AppBridge.prefs() ?: return@LaunchedEffect
@@ -80,18 +80,19 @@ fun SettingsScreen() {
         next[Keys.PANIC] = prefs.getBoolean(Keys.PANIC, false)
         FeatureRegistry.all.forEach { next[it.key] = prefs.getBoolean(it.key, true) }
         state = next
-        failed = false
+        error = null
     }
 
     fun toggle(key: String, value: Boolean) {
-        val prefs = AppBridge.prefs()
-        if (prefs == null) {
-            failed = true
+        // 只有框架真的写进去了才动界面状态：之前是无条件乐观更新，
+        // 写失败也显示成功，然后下一帧被重新读回来的旧值盖掉，看着像「开关点不动」。
+        if (!AppBridge.save(key, value)) {
+            error = AppBridge.lastError ?: "写入失败"
             return
         }
-        prefs.edit().putBoolean(key, value).apply()
+        AppBridge.clearError()
         state = state + (key to value)
-        failed = false
+        error = null
     }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.surface) { padding ->
@@ -100,7 +101,7 @@ fun SettingsScreen() {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { Header(connected = service != null, failed = failed) }
+            item { Header(connected = service != null, error = error) }
             item { Section("总开关", MASTER, state, ::toggle) }
             FeatureRegistry.byGroup().forEach { (group, features) ->
                 item {
@@ -120,7 +121,7 @@ fun SettingsScreen() {
 }
 
 @Composable
-private fun Header(connected: Boolean, failed: Boolean) {
+private fun Header(connected: Boolean, error: String?) {
     Column(Modifier.padding(start = 4.dp, end = 4.dp, top = 12.dp)) {
         Text("Mirror", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(4.dp))
@@ -130,8 +131,9 @@ private fun Header(connected: Boolean, failed: Boolean) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
+        // 出错时显示真正的原因，而不是笼统地让人去查作用域
         val (text, warn) = when {
-            failed -> "写入失败，LSPosed 里确认作用域 ${Target.PACKAGE}" to true
+            error != null -> error to true
             connected -> "已连接 LSPosed" to false
             else -> "未连接 LSPosed，开关无法保存" to true
         }

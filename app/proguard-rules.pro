@@ -29,8 +29,18 @@
     public static void tree(***);
 }
 
-# 3) LSPosed 日志 tag 不要留成可读字符串
--adaptclassstrings
+# 3) 不要在 release 里改写「看起来像类名」的字符串。
+#
+#    这里曾经用 -adaptclassstrings 想把日志 tag 藏起来，结果是错的：
+#    logcat 的 tag 是字符串常量 "Mirror"，不是类名，这条规则对它无效，
+#    真正被改写的是 AIDL 的接口描述符 —— io.github.libxposed.service.IXposedService
+#    被改成两字母的混淆名，App 调框架的 getRemotePreferences 时
+#    binder 里 enforceInterface 对不上（logcat 报 "expected ... but read 'du'"），
+#    异常被吞掉，界面就误报成「写入失败，确认作用域」。
+#
+#    结论：服务库的类名必须原样保留，否则跨进程接口名不一致。
+-keep class io.github.libxposed.service.** { *; }
+-keep interface io.github.libxposed.service.** { *; }
 
 # 4) 保留反射用到的字段名：ConstraintLayout 的布局参数按字段名反射设置
 -keepclassmembers class androidx.constraintlayout.widget.ConstraintLayout$LayoutParams {
